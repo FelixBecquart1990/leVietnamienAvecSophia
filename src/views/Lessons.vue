@@ -2,7 +2,7 @@
   <div class="mx-3 mt-4" v-if="selectedLesson.examples">
     <v-card class="elevation-5">
       <v-card-title primary-title>
-        <div v-if="user.displayName == 'Sophia Cherry'">
+        <div v-if="user && user.displayName == 'Sophia Cherry'">
           <h3 class="display-1 mb-1 primary--text">
             <textarea
               placeholder="Titre"
@@ -45,7 +45,7 @@
       <span v-if="selectedLesson.examples.length>1">s</span> :
     </div>
 
-    <transition-group name="list" tag="p" v-if="user.displayName == 'Sophia Cherry'">
+    <transition-group name="list" tag="p" v-if="user && user.displayName == 'Sophia Cherry'">
       <div v-for="(example, index) in selectedLesson.examples" :key="1+index">
         <div style="width:100%; text-align:right;">
           <v-btn
@@ -160,7 +160,7 @@
       </v-layout>
       <v-divider class="my-3"></v-divider>
     </div>
-    <div v-if="user.displayName == 'Sophia Cherry'">
+    <div v-if="user && user.displayName == 'Sophia Cherry'">
       <v-btn
         color="primary"
         :disabled="!lessonIsComplete()"
@@ -192,9 +192,9 @@
         >Supprimer la leçon</v-btn>
       </div>
     </div>
-    <v-btn v-else color="primary" dark fab fixed bottom right @click="check()">
+    <!-- <v-btn v-else color="primary" dark fab fixed bottom right @click="check()">
       <v-icon>check</v-icon>
-    </v-btn>
+    </v-btn> -->
   </div>
 </template>
 

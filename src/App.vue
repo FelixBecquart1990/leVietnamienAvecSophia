@@ -39,25 +39,25 @@
           avatar
           style="background-image: linear-gradient(to bottom right, #f2709c, #ff9472)"
         >
-          <!-- <v-list-tile-avatar v-if="user && user.photoURL">
+          <v-list-tile-avatar v-if="user && user.photoURL">
             <img :src="user.photoURL">
-          </v-list-tile-avatar> -->
-          <v-list-tile-avatar>
+          </v-list-tile-avatar>
+          <v-list-tile-avatar v-else>
             <img :src="anonymousProfilePicture">
           </v-list-tile-avatar>
 
           <v-list-tile-content>
             <v-list-tile-title
-              v-if="currentUser && currentUser.email"
+              v-if="user && user.displayName"
               class="white--text"
-            >{{ currentUser.email || "Utilisateur anonyme"}}</v-list-tile-title>
+            >{{ user.displayName || "Utilisateur anonyme"}}</v-list-tile-title>
             <v-list-tile-title v-else class="white--text">Utilisateur anonyme</v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
 
         <v-list-group prepend-icon="school" value="true">
           <v-list-tile slot="activator">
-            <v-list-tile-title>Leçons (42%)</v-list-tile-title>
+            <v-list-tile-title>Leçons</v-list-tile-title>
           </v-list-tile>
           <v-list-group sub-group no-action v-for="category in categories" :key="category.name">
             <v-list-tile slot="activator">
@@ -74,9 +74,9 @@
               @click="$router.push('/lessons'), selectedLesson = lesson, drawer = false"
             >
               <v-list-tile-title v-text="lesson.title"></v-list-tile-title>
-              <v-list-tile-action>
+              <!-- <v-list-tile-action>
                 <v-icon>check</v-icon>
-              </v-list-tile-action>
+              </v-list-tile-action> -->
             </v-list-tile>
           </v-list-group>
         </v-list-group>

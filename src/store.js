@@ -16,8 +16,7 @@ export default new Vuex.Store({
       name: "expert",
       title: "Expert"
     },
-    loading: false,
-    emailSent: false
+    loading: false
   },
   mutations: {
     setUser(state, val) {
@@ -129,119 +128,78 @@ export default new Vuex.Store({
         console.log("user:", doc.data())
       })
     },
-
-    // // ----------- UPDATE DATA OF A USER ------------ //
-    // updateDataUser({ state, commit }, payload) {
-    //   commit("setLoading", true)
-    //   fb.usersCollection.doc(state.user.uid).update(payload).then(function () {
-    //     commit("setLoading", false)
-    //     commit("setSnackbar", {
-    //       color: "success",
-    //       timeout: 3000,
-    //       text: "Modifications du profil sauvegardées"
-    //     });
-    //   })
-    //     .catch(function (error) {
-    //       commit("setLoading", false)
-    //       console.error("Error adding document: ", error);
-    //     });
-    // },
-
-    // // ----------- LOGOUT FROM THE APP ------------ //
-    // logout({ state, commit }) {
-    //   firebase.auth.signOut()
-    //     .then(() => {
-    //       commit("setUser", null);
-    //       router.push("/");
-    //       commit("setSnackbar", {
-    //         color: "success",
-    //         timeout: 3000,
-    //         text: "Vous avez bien été déconnecté"
-    //       });
-    //     })
-    //     .catch(err => {
-    //       console.log(err);
-    //     });
-    // },
-
-    fetchUser({ commit, state, dispatch }, payload) {
-      firebase.firestore().collection('users').doc(payload.uid).get().then(user => {
-        commit('setUser', user.data())
-        console.log("user from Firestore:", state.user)
-      }).catch(err => {
-        console.log(err)
-      })
-    },
-
-    linkWithEmail({ commit, state, dispatch }, payload) {
-      commit("setLoading", true)
-      var actionCodeSettings = {
-        // URL you want to redirect back to. The domain (www.example.com) for this
-        // URL must be whitelisted in the Firebase Console.
-        url: 'http://vietnamesewithsophia.firebaseapp.com',
-        // This must be true.
-        handleCodeInApp: true,
-        
-      };
-
-      firebase.auth().sendSignInLinkToEmail(payload, actionCodeSettings)
-        .then(function () {
-          // The link was successfully sent. Inform the user.
-          // Save the email locally so you don't need to ask the user for it again
-          // if they open the link on the same device.
-          window.localStorage.setItem('emailForSignIn', payload);
-          commit('setEmailSent', true)
-          commit("setLoading", false)
+    // ----------- SIGNUP FACEBOOK IF NEW USER, OR THEN JUST LOGIN AND RETRIEVE DATA ------------ //
+    facebookSignup({ state, commit, getters, dispatch }) {
+      var provider = new firebase.auth.FacebookAuthProvider();
+      firebase
+        .auth()
+        .signInWithPopup(provider)
+        .then(function (result) {
+          if (result.additionalUserInfo.isNewUser) {
+            // This gives you a Facebook Access Token. You can use it to access the Facebook API.
+            // var token = result.credential.accessToken;
+            // The signed-in user info.
+            var facebookUser = result.user;
+            // ...
+            console.log(result.user);
+            let user = {};
+            user = {
+              uid: facebookUser.uid,
+              displayName: facebookUser.displayName,
+              email: facebookUser.email,
+              photoURL: facebookUser.photoURL
+            };
+            commit("setUser", user);
+            // router.push("/")
+            commit("setSnackbar", {
+              color: "success",
+              timeout: 3000,
+              text: "Votre compte est maintenant lié à Facebook"
+            });
+            console.log("signup sucess")
+            firebase.firestore()
+              .collection("users").doc(facebookUser.uid)
+              .set(user).then(
+                firebase.firestore().collection("users").doc(user.uid).onSnapshot(doc => {
+                  commit('setUser', doc.data())
+                  console.log(doc.data())
+                })
+              )
+              .catch(error => {
+                console.log(error);
+              });
+          } else {
+            console.log("before auto login")
+            firebase.firestore().collection("users").doc(result.user.uid).onSnapshot(doc => {
+              commit('setUser', doc.data())
+              commit("setSnackbar", {
+                color: "success",
+                timeout: 3000,
+                text: "Votre compte est maintenant lié à Facebook"
+              });
+            })
+          }
         })
         .catch(function (error) {
-          console.log(error)
-          commit("setLoading", false)
-          // Some error occurred, you can inspect the code: error.code
+          console.log(error);
         });
     },
-    /*
-    ça ne va pas avec Ngan, pas bon travail
-    franchemenet client compliqué communiquer Ngan
-    Français pas suffisement bon
-    On échange des mauvaises informations.
-
-    Du coup, je suis obligé d'échanger directement avec le client... pas mon taf
-    */
-
-    // ----------- SIGNUP FACEBOOK IF NEW USER, OR THEN JUST LOGIN AND RETRIEVE DATA ------------ //
-    // linkToFacebook({ state, commit, getters, dispatch }) {
-    //   commit("setLoading", true)
-    //   var provider = new fb.firebase.auth.FacebookAuthProvider();
-    //   fb.auth.currentUser.linkWithRedirect(provider);
-
-    // },
-    // unlinkFromFacebook({ state, commit, getters, dispatch }) {
-    //   commit("setLoading", true)
-    //   if (!fb.auth.currentUser.providerData[0]) return commit("setLoading", false)
-    //   fb.auth.currentUser.unlink(fb.auth.currentUser.providerData[0].providerId).then(function () {
-    //     // Auth provider unlinked from account
-    //     router.push("/")
-
-    //     let newUser = {
-    //       uid: state.user.uid,
-    //       photoURL: null,
-    //       displayName: null
-    //     }
-    //     commit('setUser', newUser)
-    //     fb.usersCollection.doc(fb.auth.currentUser.uid).update(newUser).then(function () {
-    //       commit("setSnackbar", {
-    //         color: "success",
-    //         timeout: 3000,
-    //         text: "Votre compte a bien été délié de Facebook"
-    //       });
-    //       commit("setLoading", false)
-    //     })
-    //   }).catch(function (error) {
-    //     // An error happened
-    //     console.log(error)
-    //     commit("setLoading", false)
-    //   });
-
-    // }
+    // ----------- LOGOUT FROM THE APP ------------ //
+    logout({ state, commit }) {
+      firebase.auth()
+        .signOut()
+        .then(() => {
+          commit("setUser", null);
+          router.push("/");
+          commit("setSnackbar", {
+            color: "success",
+            timeout: 3000,
+            text: "Vous avez bien été déconnecté"
+          });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
   }
 })
