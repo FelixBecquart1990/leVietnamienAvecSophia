@@ -1,6 +1,9 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './views/Home.vue'
+import Profile from './views/Profile.vue'
+import Lessons from './views/Lessons.vue'
+import CreateLesson from './views/CreateLesson.vue'
 
 Vue.use(Router)
 
@@ -9,17 +12,28 @@ export default new Router({
   base: process.env.BASE_URL,
   routes: [
     {
+      path: "*",
+      redirect: "/"
+    },
+    {
       path: '/',
       name: 'home',
       component: Home
     },
     {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/About.vue')
+      path: '/profile',
+      name: 'profile',
+      component: Profile
+    },
+    {
+      path: '/create-lesson',
+      name: 'create-lesson',
+      component: CreateLesson
+    },
+    {
+      path: '/lessons',
+      name: 'lessons',
+      component: Lessons
     }
   ]
 })
